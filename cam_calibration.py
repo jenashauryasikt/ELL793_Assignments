@@ -1,4 +1,4 @@
-import scipy as sp
+from scipy import linalg as LA
 import numpy as np
 from PIL import Image
 import matplotlib.pyplot as plt
@@ -8,22 +8,22 @@ img = Image.open('data_img.jpg').convert('L')
 np_img = np.asarray(img)
 
 # Real-world coordinates in 3D
-D = [[4,6,0],
-	[4,4,0],
-	[3,3,0],
-	[7,1,0],
-	[2,6,0],
-	[8,8,0],
-	[0,1,1],
-	[0,2,3],
-	[0,6,4],
-	[0,3,7],
-	[0,8,2],
+D = [[4,0,4],
+	[4,0,6],
+	[3,0,7],
+	[7,0,9],
+	[2,0,4],
+	[8,0,2],
+	[0,1,9],
+	[0,3,8],
+	[0,4,4],
 	[0,7,7],
-	[0,4,2],
-	[6,0,5],
-	[4,0,3],
-	[2,0,7]]
+	[0,2,2],
+	[0,7,3],
+	[0,2,6],
+	[6,5,10],
+	[4,3,10],
+	[2,7,10]]
 D = np.asarray(D)
 
 # Image coordinates in 2D (3516x3516)
@@ -109,7 +109,7 @@ for i in range(n):
 	temp2 = np.append(temp2, -d_norm[i,1]*D_norm[i,:])
 	Q[2*i+1, :] = temp2
 A = np.matmul(Q.T, Q)
-w, v = np.linalg.eig(A)
+w, v = LA.eig(A, left=False, right=True)
 idx = np.argmin(w)
 vec = v[:,idx]
 M_norm = np.reshape(vec, (3,4))
