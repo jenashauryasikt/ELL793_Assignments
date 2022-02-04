@@ -65,6 +65,8 @@ def DLT(D_norm,D_trans,d_norm,d_trans):
     return M
 
 def test(M,D,d,path=None):
+    if D.shape[0]==0:
+        return
     projected_pts = (np.matmul(M, D.T)).T
     projected_pts[:,0] = projected_pts[:,0]/(projected_pts[:,2])
     projected_pts[:,1] = projected_pts[:,1]/(projected_pts[:,2])
@@ -89,6 +91,48 @@ def test(M,D,d,path=None):
 
     return
 
+def extract_parameters(M):
+    # Intrinsic and Extrinsic params
+    A = M[:,0:3]
+    R = np.zeros((3,3))
+    K = np.zeros((3,3))
+    rho = -1/np.linalg.norm(A[2,:])
+    R[2,:] = rho*A[2,:]
+    X0 = rho*rho*(np.matmul(A[0,:], A[2,:].T))
+    Y0 = rho*rho*(np.matmul(A[1,:], A[2,:].T))
+    cross1 = np.cross(A[0,:],A[2,:])
+    cross2 = np.cross(A[1,:],A[2,:])
+    n_cross1 = np.linalg.norm(cross1)
+    n_cross2 = np.linalg.norm(cross2)
+    c1 = -cross1/n_cross1
+    c2 = cross2[...,None]/n_cross2
+    theta = np.arccos(np.matmul(c1, c2))
+    alpha = rho*rho*n_cross1*np.sin(theta)
+    beta = rho*rho*n_cross2*np.sin(theta)
+
+    R[0,:] = cross2/n_cross2
+    R[1,:] = np.cross(R[2,:],R[0,:])
+    print("R =\n", R)
+
+    K[0,:] = np.array([alpha, -alpha/np.tan(theta), X0])
+    K[1,:] = np.array([0, beta/np.sin(theta), Y0])
+    K[2,:] = np.array([0, 0, 1])
+    print("K =\n", K)
+
+    u0 = K[0,2]
+    v0 = K[1,2]
+    print("u0 =", u0)
+    print("v0 =", v0)
+    print("theta =", theta)
+    print("alpha =", alpha)
+    print("beta =", beta)
+
+    t = (np.matmul(rho*np.linalg.inv(K), M[:,3].T))[...,None]
+    print("t=\n", t)
+
+    x0 = -np.matmul(np.linalg.inv(R), t)
+    print("x0=\n", x0)
+
 # -----------------------------------------------------------
 
 if __name__ == '__main__':
@@ -109,7 +153,22 @@ if __name__ == '__main__':
         [0,4,2],
         [6,0,5],
         [4,0,3],
-        [2,0,7]]
+        [2,0,7],
+        [6,4,0],
+        [1,1,0],
+        [2,0,1],
+        [0,3,2],
+        [3,1,0],
+        [1,1,0],
+        [1,0,2],
+        [5,0,3],
+        [1,5,0],
+        [0,2,5],
+        [6,1,0],
+        [0,4,3],
+        [0,4,7],
+        [7,6,0]
+        ]
 
     D = np.asarray(X)
 
@@ -129,14 +188,31 @@ if __name__ == '__main__':
         [1999,1924],
         [1606,895],
         [1626,1089],
-        [2516,1089]]
+        [2516,1089],
+        [932,1855],
+        [1653,1432],
+        [1629,1185],
+        [2018,1771],
+        [1397,1380],
+        [1657,1428],
+        [1882,1192],
+        [1477,1047],
+        [1629,2063],
+        [2427,1574],
+        [950,1279],
+        [2125,1931],
+        [2742,1955],
+        [762,2226]
+        ]
     d = np.asarray(Y)
     # ----------------------------------------------------
 
     # Train Test Split
-    n = 16
-    D_test = D[n:,:]
-    d_test = d[n:,:]
+    n = 7
+    D_test = D[-5:,:]
+    d_test = d[-5:,:]
+    D_test = D
+    d_test = d
     D = D[:n,:]
     d = d[:n,:]
 
@@ -150,5 +226,7 @@ if __name__ == '__main__':
 
     M = DLT(D_norm,D_trans,d_norm,d_trans)
 
-    test(M,D,d,'Results/Result.png')
-    
+    #test(M,D,d,'Results/Result_{}.png')
+    test(M,D_test,d_test,'Results/Result_{}.png'.format(n))
+    #extract_parameters(M) 
+
