@@ -41,6 +41,14 @@ def normalise(D):
     return D_norm,D_trans
 # ---------------------------------------------
 
+def no_normalise(D):
+    dim = D.shape[1]
+    n = D.shape[0]
+    D_norm = np.append(D,np.ones((n,1)),axis=1)
+    D_trans = np.eye(dim+1)
+    return D_norm,D_trans
+
+
 def DLT(D_norm,D_trans,d_norm,d_trans):
     n = D_norm.shape[0]
     O = np.array([0,0,0,0])
@@ -137,6 +145,11 @@ def extract_parameters(M):
 
 if __name__ == '__main__':
 # --------------- Dataset ----------------
+    import os
+    try:
+        os.mkdir("Results")
+    except:
+        pass
 
     X = [[4,6,0],
         [4,4,0],
@@ -208,11 +221,11 @@ if __name__ == '__main__':
     # ----------------------------------------------------
 
     # Train Test Split
-    n = 7
+    n = 30 # Select number of training data points
     D_test = D[-5:,:]
     d_test = d[-5:,:]
-    D_test = D
-    d_test = d
+    #D_test = D
+    #d_test = d
     D = D[:n,:]
     d = d[:n,:]
 
