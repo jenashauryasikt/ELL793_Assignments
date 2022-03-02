@@ -1,7 +1,7 @@
 import torch
 import torchvision.models as models
 from torchvision.datasets import MNIST,CIFAR10
-from torchvision.transforms import Compose,ToTensor,Normalize
+from torchvision.transforms import Compose,ToTensor,Normalize,RandomHorizontalFlip,RandomRotation, RandomVerticalFlip, RandomApply
 from torch.utils.data import random_split,Dataset
 import torch.nn as nn
 import torch.nn.functional as F
@@ -20,7 +20,7 @@ class TinyCifar(Dataset):
         
         self.test_transforms = Compose([ToTensor(),Normalize(mean,std)])
         self.train_transforms =  Compose([ToTensor(),Normalize(mean,std)])
-        self.augment_transforms = Compose([])
+        self.augment_transforms = Compose([RandomHorizontalFlip(),RandomVerticalFlip(),RandomRotation(-10,10)])
 
         data = CIFAR10(root="cifar/",train=True,download=True,transform=self.train_transforms)
         tiny_data = {}
@@ -275,7 +275,6 @@ def test(model,data,args):
             y = y.to(args.device)
             pred = model(x).type(torch.float32)
             loss = torch.nn.functional.nll_loss(pred,y)
-            test_loss += loss.item()*len(x)
             _,output = torch.max(pred,dim=1)
             correct += (output == y).detach().float().sum().item()
             total = total + x.shape[0]
