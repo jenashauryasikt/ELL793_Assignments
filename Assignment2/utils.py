@@ -176,11 +176,13 @@ class Res_Net(nn.Module):
         self.args = args
         self.backbone = models.resnet18(pretrained=True)
         self.fcs = nn.ModuleList()
-        self.flatten = nn.Flatten()
         
-        if not args.scratch:
-            for param in self.backbone.parameters():
+        for param in self.backbone.parameters():
+            if not args.scratch:
                 param.requires_grad = False
+            else:
+                param.requires_grad = True
+
         
         if args.activation == 'relu':
             self.activation = F.relu
@@ -194,8 +196,10 @@ class Res_Net(nn.Module):
                 self.fcs.append(nn.Linear(self.backbone.fc.out_features,args.hid))
             else:
                 self.fcs.append(nn.Linear(args.hid,args.hid))
-        
-        self.fcs.append(nn.Linear(args.hid,10))
+        if args.layers > 1: 
+            self.fcs.append(nn.Linear(args.hid,10))
+        else:
+            self.fcs.append(nn.Linear(self.backbone.fc.out_features,10))
 
     def forward(self,x):
         x = self.backbone(x)
