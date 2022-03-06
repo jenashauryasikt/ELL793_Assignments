@@ -87,3 +87,4 @@ scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer,patience=5,min_lr=1e-
 
 
 train(model,data_train,data_valid,optimizer,scheduler,args)
+#test(model,data_train,data_valid,optimizer,scheduler,args)
